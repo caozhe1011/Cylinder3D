@@ -1,0 +1,92 @@
+# Config format schema number
+format_version: 4
+
+###################
+## Model options
+model_params:
+  model_architecture: "cylinder_asym"
+
+  output_shape:    # [半径、角度、z]体素化参数
+     - 160
+     - 140
+     - 70
+#     - 240
+#     - 270
+#     - 70
+#     - 480
+#     - 270
+#     - 32
+#    - 480
+#    - 360
+#    - 32
+
+  fea_dim: 9
+  out_fea_dim: 256
+  num_class: 4  # 类别
+  num_input_features: 16  # 第一层升维模块的输入（在第一层不对称残差模块前）
+  use_norm: True
+  init_size: 32  # 第一层升维模块的输出（在第一层不对称残差模块前）
+
+
+###################
+## Dataset options
+dataset_params:
+  dataset_type: "cylinder_dataset"  # 网络输入数据集
+  pc_dataset_type: "Rail_sk"  # semantic kitti读取
+  ignore_label: 5
+  return_test: False
+  fixed_volume_space: True
+  label_mapping: "./config/label_mapping/rail-mapping.yaml"
+  max_volume_space:
+    - 70
+    - 0.78539815  # 视野范围80°，一边40
+    - 4
+#    - 70
+#    - 3.1415926
+#    - 4
+  min_volume_space:
+    - 0
+    - -0.78539815
+    - -4
+#    - 0
+#    - -3.1415926
+#    - -4
+  val_folders:  # rail_data_builder.build时使用
+    - 'a3b' #"a3"
+    - 'a5a' #"a6"
+    - 'a6' #"a7"
+#    - 'test'
+
+###################
+## Data_loader options
+train_data_loader:
+  data_path: "/data8T/dataset/yy_dataset/rail_npy9_block"
+  imageset: "train"
+  return_ref: True  # 返回反射率
+  batch_size: 6  # 6
+  shuffle: True
+  num_workers: 6
+
+val_data_loader:
+#  data_path: "/data8T/dataset/yy_dataset/rail_npy9_block"
+  data_path: "/data8T/dataset/yy_dataset/test
+  imageset: "val"
+  return_ref: True
+  batch_size: 3
+  shuffle: False
+  num_workers: 6
+  val_folders:  # 验证集显示时使用
+    - 'a3b' #"a3"
+    - 'a5a' #"a6"
+    - 'a6' #"a7"
+
+
+###################
+## Train params
+train_params:
+  model_load_path: "./model_save_dir/block/block_geo6_sparse.pt"
+  model_save_path: "./model_save_dir/block/block_geo6_sparse.pt"
+  checkpoint_every_n_steps: 50
+  max_num_epochs: 80  # 40
+  eval_every_n_steps: 100
+  learning_rate: 0.0001  # 0.0001

@@ -1,0 +1,43 @@
+# This file is covered by the LICENSE file in the root of this project.
+labels:
+  0: "background"
+  1: "rail"
+  2: "pole"
+  3: "block"
+color_map: # bgr
+  0: [0, 0, 0]
+  1: [0, 0, 255]
+  2: [255, 0, 0]
+content: # as a ratio with the total number of points
+  0: 0.89393136
+  1: 0.07895161
+  2: 0.02711703
+# classes that are indistinguishable from single scan or inconsistent in
+# ground truth are mapped to their closest equivalent
+learning_map:
+  0: 0     # "background"
+  1: 1     # "rail"
+  2: 2     # "pole"
+  3: 3     # "block"
+learning_map_inv: # inverse of previous map
+  0: 0     # "background"
+  1: 1     # "rail"
+  2: 2     # "pole"
+  3: 3     # "block"
+learning_ignore: # Ignore classes
+  0: False
+  1: False
+  2: False
+  3: False
+split: # sequence numbers
+  train:
+    - "a1"
+    - "a2"
+    - "a3a"
+    - "a5b"
+    - "a5c"
+    - "a7"
+  valid:
+   a3b: ["a3b"]
+   a5a: ["a5a"]
+   a6: ["a6"]
