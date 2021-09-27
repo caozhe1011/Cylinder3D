@@ -39,9 +39,10 @@ class cylinder_asym(nn.Module):
         self.sparse_shape = sparse_shape
 
     def forward(self, train_pt_fea_ten, train_vox_ten, batch_size):
+        # 使用train_vox_ten（每个点在体素内的位置）选出unique的体素，升维后提取最大特征作为体素特征
         # coors:存在的体素的坐标,features_3d:每个体素内最大的特征值（每个体素只有一个特征）
         coords, features_3d = self.cylinder_3d_generator(train_pt_fea_ten, train_vox_ten)
-
+        # 不对称稀疏卷积提取特征
         spatial_features = self.cylinder_3d_spconv_seg(features_3d, coords, batch_size)
 
         return spatial_features
