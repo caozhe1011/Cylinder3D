@@ -252,7 +252,7 @@ def main(args):
                 # loss += loss_func(outputs, point_label_tensor)
                 # TODO:新加的loss
                 loss += loss_builder.geo_loss6(point_label_tensor, outputs, grid_size, ignore_label, train_batch_size)
-                writer.add_scalar(tag="loss", step=global_iter, value=loss)
+                # writer.add_scalar(tag="loss", step=global_iter, value=loss)
                 loss.backward()
                 optimizer.step()
 
