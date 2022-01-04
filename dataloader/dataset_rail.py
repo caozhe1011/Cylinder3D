@@ -191,7 +191,7 @@ class cylinder_dataset(data.Dataset):
         return data_tuple
 
 
-@nb.jit('u1[:,:,:](u1[:,:,:],i8[:,:])', nopython=True, cache=True, parallel=False)  # jit加速
+@nb.jit(nopython=True, cache=True, parallel=False)  # jit加速
 # processed_label[480, 360, 32]的0阵  ,  sorted_label_voxel_pair[N,4] 每个点在体素的index和label
 def nb_process_label(processed_label, sorted_label_voxel_pair):
     label_size = 256

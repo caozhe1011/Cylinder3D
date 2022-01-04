@@ -83,7 +83,7 @@ SCHEMA_FORMAT_VERSION_TO_SCHEMA = {4: schema_v4}
 
 
 def load_config_data(path: str) -> dict:
-    yaml_string = Path(path).read_text()  # 读取ymal返回文本
+    yaml_string = Path(path).read_text(encoding='utf-8')  # 读取ymal返回文本
     cfg_without_schema = load(yaml_string, schema=None)  # 返回YAML类型字典
     schema_version = int(cfg_without_schema["format_version"])
     if schema_version not in SCHEMA_FORMAT_VERSION_TO_SCHEMA:

@@ -60,19 +60,19 @@ dataset_params:
 ###################
 ## Data_loader options
 train_data_loader:
-  data_path: "/data8T/dataset/yy_dataset/rail_npy9_block"
+  data_path: "E://0dataset//rail_npy9//block//rail_npy9_block"
   imageset: "train"
   return_ref: True  # 返回反射率
-  batch_size: 6  # 6
+  batch_size: 4  # 6
   shuffle: True
   num_workers: 6
 
 val_data_loader:
 #  data_path: "/data8T/dataset/yy_dataset/rail_npy9_block"
-  data_path: "/data8T/dataset/yy_dataset/test
+  data_path: "E://0dataset//rail_npy9//block//rail_npy9_block"
   imageset: "val"
   return_ref: True
-  batch_size: 3
+  batch_size: 1
   shuffle: False
   num_workers: 6
   val_folders:  # 验证集显示时使用
@@ -84,8 +84,8 @@ val_data_loader:
 ###################
 ## Train params
 train_params:
-  model_load_path: "./model_save_dir/block/block_geo6_sparse.pt"
-  model_save_path: "./model_save_dir/block/block_geo6_sparse.pt"
+  model_load_path: "./model_save_dir/block_geo6_test.pt"
+  model_save_path: "./model_save_dir/block_geo6_test.pt"
   checkpoint_every_n_steps: 50
   max_num_epochs: 80  # 40
   eval_every_n_steps: 100

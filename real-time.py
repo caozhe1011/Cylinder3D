@@ -6,7 +6,6 @@ import time
 import argparse
 import sys
 import numpy as np
-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 import torch
 from dataloader.pc_dataset import get_SemKITTI_label_name
 from builder import rail_data_builder, model_builder

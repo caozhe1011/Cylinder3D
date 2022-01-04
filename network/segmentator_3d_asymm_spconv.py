@@ -3,9 +3,10 @@
 # @file: segmentator_3d_asymm_spconv.py
 
 import numpy as np
-import spconv
+import spconv.pytorch as spconv
 import torch
 from torch import nn
+from spconv.pytorch import functional as Fsp
 
 
 def conv3x3(in_planes, out_planes, stride=1, indice_key=None):
@@ -46,19 +47,19 @@ def conv1x1(in_planes, out_planes, stride=1, indice_key=None):
 class ResContextBlock(nn.Module):  # Asymmetrical Residual Block
     def __init__(self, in_filters, out_filters, kernel_size=(3, 3, 3), stride=1, indice_key=None):
         super(ResContextBlock, self).__init__()
-        self.conv1 = conv1x3(in_filters, out_filters, indice_key=indice_key + "bef")  # (1, 3, 3)
+        self.conv1 = conv1x3(in_filters, out_filters, indice_key=indice_key + "bef1")  # (1, 3, 3)
         self.bn0 = nn.BatchNorm1d(out_filters)
         self.act1 = nn.LeakyReLU()
 
-        self.conv1_2 = conv3x1(out_filters, out_filters, indice_key=indice_key + "bef")
+        self.conv1_2 = conv3x1(out_filters, out_filters, indice_key=indice_key + "bef2")
         self.bn0_2 = nn.BatchNorm1d(out_filters)
         self.act1_2 = nn.LeakyReLU()
 
-        self.conv2 = conv3x1(in_filters, out_filters, indice_key=indice_key + "bef")
+        self.conv2 = conv3x1(in_filters, out_filters, indice_key=indice_key + "bef2")
         self.act2 = nn.LeakyReLU()
         self.bn1 = nn.BatchNorm1d(out_filters)
 
-        self.conv3 = conv1x3(out_filters, out_filters, indice_key=indice_key + "bef")
+        self.conv3 = conv1x3(out_filters, out_filters, indice_key=indice_key + "bef1")
         self.act3 = nn.LeakyReLU()
         self.bn2 = nn.BatchNorm1d(out_filters)
 
@@ -72,21 +73,21 @@ class ResContextBlock(nn.Module):  # Asymmetrical Residual Block
 
     def forward(self, x):
         shortcut = self.conv1(x)  # 返回的是SparseConvTensor
-        shortcut.features = self.act1(shortcut.features)  # 取出SparseConvTensor的features属性
-        shortcut.features = self.bn0(shortcut.features)
+        shortcut = shortcut.replace_feature(self.act1(shortcut.features))  # 取出SparseConvTensor的features属性
+        shortcut = shortcut.replace_feature(self.bn0(shortcut.features))
 
         shortcut = self.conv1_2(shortcut)
-        shortcut.features = self.act1_2(shortcut.features)
-        shortcut.features = self.bn0_2(shortcut.features)
+        shortcut = shortcut.replace_feature(self.act1_2(shortcut.features))
+        shortcut = shortcut.replace_feature(self.bn0_2(shortcut.features))
 
         resA = self.conv2(x)
-        resA.features = self.act2(resA.features)
-        resA.features = self.bn1(resA.features)
+        resA = resA.replace_feature(self.act2(resA.features))
+        resA = resA.replace_feature(self.bn1(resA.features))
 
         resA = self.conv3(resA)
-        resA.features = self.act3(resA.features)
-        resA.features = self.bn2(resA.features)
-        resA.features = resA.features + shortcut.features  # 拼接两个residual block的输出
+        resA = resA.replace_feature(self.act3(resA.features))
+        resA = resA.replace_feature(self.bn2(resA.features))
+        resA.replace_feature = resA.features + shortcut.features  # 拼接两个residual block的输出
 
         return resA
 
@@ -98,19 +99,19 @@ class ResBlock(nn.Module):
         self.pooling = pooling
         self.drop_out = drop_out
 
-        self.conv1 = conv3x1(in_filters, out_filters, indice_key=indice_key + "bef")  # (3, 1, 3)
+        self.conv1 = conv3x1(in_filters, out_filters, indice_key=indice_key + "bef2")  # (3, 1, 3)
         self.act1 = nn.LeakyReLU()
         self.bn0 = nn.BatchNorm1d(out_filters)
 
-        self.conv1_2 = conv1x3(out_filters, out_filters, indice_key=indice_key + "bef")  # (1, 3, 3)
+        self.conv1_2 = conv1x3(out_filters, out_filters, indice_key=indice_key + "bef1")  # (1, 3, 3)
         self.act1_2 = nn.LeakyReLU()
         self.bn0_2 = nn.BatchNorm1d(out_filters)
 
-        self.conv2 = conv1x3(in_filters, out_filters, indice_key=indice_key + "bef")  # (1, 3, 3)
+        self.conv2 = conv1x3(in_filters, out_filters, indice_key=indice_key + "bef1")  # (1, 3, 3)
         self.act2 = nn.LeakyReLU()
         self.bn1 = nn.BatchNorm1d(out_filters)
 
-        self.conv3 = conv3x1(out_filters, out_filters, indice_key=indice_key + "bef")  # (3, 1, 3)
+        self.conv3 = conv3x1(out_filters, out_filters, indice_key=indice_key + "bef2")  # (3, 1, 3)
         self.act3 = nn.LeakyReLU()
         self.bn2 = nn.BatchNorm1d(out_filters)
 
@@ -131,22 +132,23 @@ class ResBlock(nn.Module):
 
     def forward(self, x):
         shortcut = self.conv1(x)
-        shortcut.features = self.act1(shortcut.features)
-        shortcut.features = self.bn0(shortcut.features)
+        shortcut = shortcut.replace_feature(self.act1(shortcut.features))
+        shortcut = shortcut.replace_feature(self.bn0(shortcut.features))
 
         shortcut = self.conv1_2(shortcut)
-        shortcut.features = self.act1_2(shortcut.features)
-        shortcut.features = self.bn0_2(shortcut.features)
+        shortcut = shortcut.replace_feature(self.act1_2(shortcut.features))
+        shortcut = shortcut.replace_feature(self.bn0_2(shortcut.features))
 
         resA = self.conv2(x)
-        resA.features = self.act2(resA.features)
-        resA.features = self.bn1(resA.features)
+        resA = resA.replace_feature(self.act2(resA.features))
+        resA = resA.replace_feature(self.bn1(resA.features))
 
         resA = self.conv3(resA)
-        resA.features = self.act3(resA.features)
-        resA.features = self.bn2(resA.features)
+        resA = resA.replace_feature(self.act3(resA.features))
+        resA = resA.replace_feature(self.bn2(resA.features))
 
-        resA.features = resA.features + shortcut.features
+        resA = Fsp.sparse_add(resA, shortcut)
+        # resA.features = resA.features + shortcut.features
 
         if self.pooling:
             resB = self.pool(resA)
@@ -163,11 +165,11 @@ class UpBlock(nn.Module):
         self.trans_act = nn.LeakyReLU()
         self.trans_bn = nn.BatchNorm1d(out_filters)
 
-        self.conv1 = conv1x3(out_filters, out_filters, indice_key=indice_key)  # (1, 3, 3)
+        self.conv1 = conv1x3(out_filters, out_filters, indice_key=indice_key + "bef1")  # (1, 3, 3)
         self.act1 = nn.LeakyReLU()
         self.bn1 = nn.BatchNorm1d(out_filters)
 
-        self.conv2 = conv3x1(out_filters, out_filters, indice_key=indice_key)  # (3, 1, 3)
+        self.conv2 = conv3x1(out_filters, out_filters, indice_key=indice_key + "bef2")  # (3, 1, 3)
         self.act2 = nn.LeakyReLU()
         self.bn2 = nn.BatchNorm1d(out_filters)
 
@@ -189,25 +191,26 @@ class UpBlock(nn.Module):
 
     def forward(self, x, skip):
         upA = self.trans_dilao(x)  # 特征提升到输出维度
-        upA.features = self.trans_act(upA.features)
-        upA.features = self.trans_bn(upA.features)
+        upA = upA.replace_feature(self.trans_act(upA.features))
+        upA = upA.replace_feature(self.trans_bn(upA.features))
 
         # upsample
         upA = self.up_subm(upA)  # 反卷积
 
-        upA.features = upA.features + skip.features
+        # upA.features = upA.features + skip.features
+        upA = Fsp.sparse_add(upA, skip)
 
         upE = self.conv1(upA)
-        upE.features = self.act1(upE.features)
-        upE.features = self.bn1(upE.features)
+        upE = upE.replace_feature(self.act1(upE.features))
+        upE = upE.replace_feature(self.bn1(upE.features))
 
         upE = self.conv2(upE)
-        upE.features = self.act2(upE.features)
-        upE.features = self.bn2(upE.features)
+        upE = upE.replace_feature(self.act2(upE.features))
+        upE = upE.replace_feature(self.bn2(upE.features))
 
         upE = self.conv3(upE)
-        upE.features = self.act3(upE.features)
-        upE.features = self.bn3(upE.features)
+        upE = upE.replace_feature(self.act3(upE.features))
+        upE = upE.replace_feature(self.bn3(upE.features))
 
         return upE
 
@@ -229,19 +232,20 @@ class ReconBlock(nn.Module):
 
     def forward(self, x):
         shortcut = self.conv1(x)
-        shortcut.features = self.bn0(shortcut.features)
-        shortcut.features = self.act1(shortcut.features)
+        shortcut = shortcut.replace_feature(self.bn0(shortcut.features))
+        shortcut = shortcut.replace_feature(self.act1(shortcut.features))
 
         shortcut2 = self.conv1_2(x)
-        shortcut2.features = self.bn0_2(shortcut2.features)
-        shortcut2.features = self.act1_2(shortcut2.features)
-
+        shortcut2 = shortcut2.replace_feature(self.bn0_2(shortcut2.features))
+        shortcut2 = shortcut2.replace_feature(self.act1_2(shortcut2.features)
+                                              )
         shortcut3 = self.conv1_3(x)
-        shortcut3.features = self.bn0_3(shortcut3.features)
-        shortcut3.features = self.act1_3(shortcut3.features)
-        shortcut.features = shortcut.features + shortcut2.features + shortcut3.features
+        shortcut3 = shortcut3.replace_feature((self.bn0_3(shortcut3.features)))
+        shortcut3 = shortcut3.replace_feature((self.act1_3(shortcut3.features)))
+        # shortcut.features = shortcut.features + shortcut2.features + shortcut3.features
+        shortcut = Fsp.sparse_add(shortcut, shortcut2, shortcut3)
 
-        shortcut.features = shortcut.features * x.features
+        shortcut = shortcut.replace_feature(shortcut.features * x.features)
 
         return shortcut
 
@@ -317,7 +321,7 @@ class Asymm_3d_spconv(nn.Module):
 
         up0e = self.ReconNet(up1e)  # [480，360，32]
 
-        up0e.features = torch.cat((up0e.features, up1e.features), 1)  # Point-wise Refinement Module
+        up0e = up0e.replace_feature(torch.cat((up0e.features, up1e.features), 1))  # Point-wise Refinement Module
 
         logits = self.logits(up0e)
         y = logits.dense()  # 返回普通的tensor  [B=1,20,480,360,32] 每一个体素所代表的类别
