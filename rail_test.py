@@ -122,7 +122,7 @@ if __name__ == '__main__':
     warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser()
     parser.add_argument('-y', '--config_path', default='config/rail.yaml')  # 读取体素分割大小、label、batchsize、验证集文件夹
-    parser.add_argument('--model_load_path', default='./model_save_dir/block/block_geo6_sparse.pt')
+    parser.add_argument('--model_load_path', default='./model_save_dir/block_geo6_sparse.pt')
     parser.add_argument('--save_root_path', default='./test')
     args = parser.parse_args()
 
