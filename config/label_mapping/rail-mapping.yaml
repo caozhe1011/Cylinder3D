@@ -37,6 +37,8 @@ split: # sequence numbers
     - "a5b"
     - "a5c"
     - "a7"
+    - "a3b_enhance"
+    - "a5a_enhance"
   valid:
    a3b: ["a3b"]
    a5a: ["a5a"]
