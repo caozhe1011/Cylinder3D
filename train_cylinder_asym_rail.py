@@ -107,7 +107,7 @@ def main(args):
     my_model.train()
     global_iter = 0
     check_iter = train_hypers['eval_every_n_steps']
-    with LogWriter(logdir="./log/train/block") as writer:
+    with LogWriter(logdir="./log/train") as writer:
         while epoch < train_hypers['max_num_epochs']:
             loss_list = []
             pbar = tqdm(total=len(train_dataset_loader))
@@ -135,8 +135,8 @@ def main(args):
                                 # aux_loss = loss_fun(aux_outputs, point_label_tensor)
                                 loss = lovasz_softmax(torch.nn.functional.softmax(predict_labels), val_label_tensor,
                                                       ignore=ignore_label)
-                                loss += loss_func(predict_labels.detach(), val_label_tensor)
-                                # loss += loss_builder.geo_loss(val_label_tensor, predict_labels, grid_size, ignore_label, val_batch_size)
+                                # loss += loss_func(predict_labels.detach(), val_label_tensor)
+                                loss += loss_builder.geo_loss(val_label_tensor, predict_labels, grid_size, ignore_label, val_batch_size)
                                 predict_labels = torch.argmax(predict_labels, dim=1)
                                 predict_labels = predict_labels.cpu().detach().numpy()  # [1,480,360,32]
                                 for count, i_val_grid in enumerate(val_grid):  # val_grid是每个点所在的体素index
@@ -185,11 +185,9 @@ def main(args):
                 # loss = lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,
                 #                       ignore=ignore_label) + loss_func(outputs, point_label_tensor)
                 loss = lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor, ignore=ignore_label)
-                loss += loss_func(outputs, point_label_tensor)
+                # loss += loss_func(outputs, point_label_tensor)
                 # TODO:新加的loss
-                # loss += loss_builder.geo_loss(point_label_tensor, outputs, grid_size, ignore_label, train_batch_size)
-                # if torch.isnan(loss):
-                #     print(global_iter)
+                loss += loss_builder.geo_loss(point_label_tensor, outputs, grid_size, ignore_label, train_batch_size)
                 writer.add_scalar(tag="loss", step=global_iter, value=loss)
                 loss.backward()
                 optimizer.step()

@@ -7,18 +7,9 @@ model_params:
   model_architecture: "cylinder_asym"
 
   output_shape:    # [半径、角度、z]体素化参数
-     - 160
-     - 140
-     - 70
-#     - 240
-#     - 270
-#     - 70
-#     - 480
-#     - 270
-#     - 32
-#    - 480
-#    - 360
-#    - 32
+     - 68
+     - 60
+     - 30
 
   fea_dim: 9
   out_fea_dim: 256
@@ -63,9 +54,9 @@ train_data_loader:
   data_path: "E://0dataset//rail_npy9//block//rail_npy9_block"
   imageset: "train"
   return_ref: True  # 返回反射率
-  batch_size: 4  # 6
+  batch_size: 5  # 6
   shuffle: True
-  num_workers: 6
+  num_workers: 4
 
 val_data_loader:
 #  data_path: "/data8T/dataset/yy_dataset/rail_npy9_block"
@@ -74,7 +65,7 @@ val_data_loader:
   return_ref: True
   batch_size: 1
   shuffle: False
-  num_workers: 6
+  num_workers: 2
   val_folders:  # 验证集显示时使用
     - 'a3b' #"a3"
     - 'a5a' #"a6"
@@ -87,6 +78,6 @@ train_params:
   model_load_path: "./model_save_dir/block_geo6_sparse.pt"
   model_save_path: "./model_save_dir/block_geo6_sparse.pt"
   checkpoint_every_n_steps: 50
-  max_num_epochs: 80  # 40
+  max_num_epochs: 40  # 40
   eval_every_n_steps: 100
   learning_rate: 0.0001  # 0.0001
